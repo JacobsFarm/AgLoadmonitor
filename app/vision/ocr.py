@@ -1,0 +1,1 @@
+# Code om het YOLO model te laden en plaatjes naar tekst om te zetten

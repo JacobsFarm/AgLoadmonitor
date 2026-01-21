@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tractor Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="tab-navigation">
+        <button class="tab-link active" data-tab="dashboard-tab">📊 Dashboard & Plan</button>
+        <button class="tab-link" data-tab="stream-tab">📹 Camera Stream</button>
+    </div>
+
+    <div id="dashboard-tab" class="tab-content active">
+        <div class="container">
+            <h1>Voermengwagen Monitor</h1>
+
+            <div class="main-layout grid-layout">
+                <div class="left-column panel">
+                    <div class="gewicht-box">
+                        <p class="label">Totaal Gewicht (OCR):</p>
+                        <h2 class="groot-cijfer">{{ gewicht }} KG</h2>
+                        <p class="sub-label">Laatste vracht: 4500 kg</p>
+                    </div>
+                </div>
+
+                <div class="right-column panel">
+                    <div class="voerplan-header">
+                        <h2>Voerplan: Koeien Ochtend</h2>
+                    </div>
+                    <div class="stap-box actieve-stap">
+                         <p><span class="step-number">2.</span> Huidige stap: <strong>{{ stap }}</strong></p>
+                        <p>Doel: {{ doel }} KG | Actueel: 725 KG</p>
+                         <div class="progress-bar-container">
+                            <div class="progress-bar oranje" style="width: 72.5%;">72.5%</div>
+                        </div>
+                    </div>
+                     <div class="stap-box wachtende-stap">
+                        <p><span class="step-number">3.</span> Meel (Soja/Raap)</p>
+                        <p>Doel: 500 KG</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-bar">
+                <button class="actie-knop klein">-10%</button>
+                <button class="grote-knop groen">Volgende Stap (Mais Klaar)</button>
+                <button class="actie-knop klein">+10%</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="stream-tab" class="tab-content">
+        <div class="container video-container">
+            <h1>Live Camera Voerbak</h1>
+            
+            <div class="video-wrapper" style="width: 100%; background: #000; border-radius: 10px; overflow: hidden;">
+                <img src="{{ url_for('main.video_feed') }}" style="width: 100%; height: auto; display: block;">
+            </div>
+
+            <button id="start-stream-btn" class="grote-knop blauw" style="margin-top: 20px;">Start Stream</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jsmpeg.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

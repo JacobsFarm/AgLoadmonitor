@@ -1,0 +1,1 @@
+# Flask routes die JSON data teruggeven voor de frontend (AJAX)

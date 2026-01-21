@@ -1,0 +1,1 @@
+# De kern logica: status bijhouden, gewichten vergelijken, etc.

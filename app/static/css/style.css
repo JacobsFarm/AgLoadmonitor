@@ -1,0 +1,70 @@
+/* --- NIEUWE TAB STIJLEN --- */
+
+/* De balk waar de knoppen in zitten */
+.tab-navigation {
+    display: flex;
+    justify-content: center;
+    background-color: #333;
+    padding: 10px 10px 0 10px; /* Geen padding onder */
+    margin-bottom: 20px;
+    border-bottom: 3px solid #555;
+}
+
+/* De tab knoppen zelf */
+.tab-link {
+    background-color: #444;
+    color: #aaa;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: 10px 10px 0 0; /* Alleen bovenhoeken afronden */
+    margin: 0 5px;
+    transition: all 0.3s ease;
+}
+
+.tab-link:hover {
+    background-color: #555;
+    color: white;
+}
+
+/* De stijl voor de ACTIEVE tab knop */
+.tab-link.active {
+    background-color: #222; /* Zelfde kleur als achtergrond body */
+    color: #2ecc71; /* Groen */
+    border-bottom: 3px solid #2ecc71; /* Groene streep eronder */
+    font-weight: bold;
+}
+
+/* --- TAB INHOUD VERBERGEN/TONEN --- */
+
+/* Standaard zijn alle tab-contents VERBORGEN */
+.tab-content {
+    display: none;
+    /* Een kleine animatie als ze tevoorschijn komen */
+    animation: fadeEffect 0.5s;
+}
+
+/* Alleen de tab-content met de class 'active' wordt getoond */
+.tab-content.active {
+    display: block;
+}
+
+/* Animatie definitie */
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+/* Stijl voor de video placeholder in tab 2 */
+.video-placeholder {
+    background-color: #000;
+    border: 3px solid #555;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
