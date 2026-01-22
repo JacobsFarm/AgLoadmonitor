@@ -2,7 +2,7 @@ import cv2
 import time
 
 # Je RTSP URL
-RTSP_URL = "rtsp://admin:77778888Camera89.@192.168.178.46:554/h264Preview_02_sub"
+RTSP_URL = "rtsp://admin:YourPassword123@192.168.100.22:554/h264Preview_01_sub"
 
 def generate_frames():
     camera = cv2.VideoCapture(RTSP_URL)
@@ -57,4 +57,5 @@ def generate_frames():
         frame_bytes = buffer.tobytes()
 
         yield (b'--frame\r\n'
+
                b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
