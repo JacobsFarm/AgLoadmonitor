@@ -9,7 +9,7 @@ class Config:
     # --- Camera URL's (PAS DIT AAN!) ---
     # Voorbeeld: "rtsp://gebruiker:wachtwoord@192.168.1.50:554/stream1"
     # Zet hier de URL van de camera in de bak
-    RTSP_URL_BAK = "rtsp://admin:77778888Camera89.@192.168.178.46:554/h264Preview_02_sub"
+    RTSP_URL_BAK = "rtsp://admin:YourPassword123@192.168.100.22:554/h264Preview_01_sub"
     
     # Zet hier later de URL van de camera op de monitor
     RTSP_URL_OCR = "" 
@@ -22,3 +22,4 @@ class Config:
     # --- Applicatie Logica ---
     # Hoeveel seconden moet gewicht stabiel zijn voor auto-volgende-stap?
     AUTO_NEXT_STEP_DELAY = 5 
+
