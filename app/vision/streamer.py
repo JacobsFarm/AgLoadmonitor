@@ -1,61 +1,74 @@
 import cv2
 import time
+import json
+import os
 
-# Je RTSP URL
-RTSP_URL = "rtsp://admin:YourPassword123@192.168.100.22:554/h264Preview_01_sub"
+def get_rtsp_url():
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        root_dir = os.path.dirname(os.path.dirname(current_dir))
+        json_path = os.path.join(root_dir, 'data', 'config.json')
+        
+        if not os.path.exists(json_path):
+            print(f"ERROR: File not found at: {json_path}")
+            return None
+
+        with open(json_path, 'r') as f:
+            config_data = json.load(f)
+            return config_data.get("RTSP_URL_BAK")
+            
+    except Exception as e:
+        print(f"ERROR fetching URL: {e}")
+        return None
 
 def generate_frames():
-    camera = cv2.VideoCapture(RTSP_URL)
+    RTSP_URL = get_rtsp_url()
     
-    # Buffer op 1 zetten is cruciaal voor 'live' gevoel
+    if not RTSP_URL:
+        print("ERROR: Could not load RTSP_URL.")
+        return
+
+    camera = cv2.VideoCapture(RTSP_URL)
     camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
     if not camera.isOpened():
-        print("FOUT: Kan camera niet openen.")
+        print(f"ERROR: Could not open camera at: {RTSP_URL}")
 
-    # --- INSTELLINGEN ---
-    TARGET_FPS = 5             # We willen max 5 beelden per seconde sturen
+    TARGET_FPS = 5             
     FRAME_INTERVAL = 1.0 / TARGET_FPS 
     last_frame_time = 0
 
     while True:
-        # We lezen ALTIJD de camera uit om de buffer leeg te houden
         success, frame = camera.read()
 
         if not success:
-            # Verbinding verbroken? Probeer opnieuw.
-            print("Verbinding weg, herstarten...")
+            print("Connection lost, reconnecting...")
             camera.release()
             time.sleep(2)
+            
+            RTSP_URL = get_rtsp_url()
             camera = cv2.VideoCapture(RTSP_URL)
             camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             continue
 
-        # --- TIJD CHECK ---
-        # Is het al tijd voor het volgende plaatje?
         current_time = time.time()
         if (current_time - last_frame_time) < FRAME_INTERVAL:
-            # Nee, het is nog te vroeg. Sla dit frame over.
             continue
         
         last_frame_time = current_time
 
-        # --- VERWERKING (Alleen als het tijd is) ---
-        
-        # 1. Verkleinen (alleen als de bron groter is dan 640px)
-        # Dit spaart de CPU van de Raspberry Pi
         height, width = frame.shape[:2]
         if width > 640:
             new_width = 640
             new_height = int(height * (new_width / width))
             frame = cv2.resize(frame, (new_width, new_height))
 
-        # 2. Comprimeren naar JPG
-        # Kwaliteit 40 is vaak goed genoeg voor op een telefoon
         ret, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 40])
         
+        if not ret:
+            continue
+
         frame_bytes = buffer.tobytes()
 
         yield (b'--frame\r\n'
-
                b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
