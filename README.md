@@ -21,6 +21,8 @@ No expensive proprietary hardware upgrades needed—just smart software and off-
 * **⚖️ Stability Check:** The system waits for the weight to remain stable for **3 seconds** before logging the data, preventing false readings from a shaking wagon.
 * **📸 Visual Audit Log:** Saves a low-res screenshot of the physical scale for every loaded component. (e.g., *"The system logged 1230kg, and here is the photo of the screen proving it."*)
 
+<img width="578" height="441" alt="Schermafbeelding 2026-01-23 212203" src="https://github.com/user-attachments/assets/18b496bb-9889-464b-9afd-883789e8616e" />
+
 ### Connectivity & Sync
 * **Offline-First Architecture:** The Raspberry Pi acts as a local server. You connect your phone directly to it in the tractor—no internet required to feed.
 * **Smart Cloud Sync:** When the tractor is turned off (or returns to the farm yard), the Pi detects the home WiFi and pushes JSON logs to a cloud location (GitHub/Dropbox/Private Server). This ensures feed plans can be edited in the office and downloaded automatically the next morning.
