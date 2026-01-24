@@ -3,138 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>openAgLoadMonitor</title>
-    <style>
-        :root { --bg-color: #121212; --card-bg: #1e1e1e; --text-main: #ffffff; --text-muted: #aaaaaa; --accent-green: #2ecc71; --accent-orange: #e67e22; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
-        
-        /* OVERLAY STIJLEN - DEZE IS NIEUW */
-        #start-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            text-align: center;
-        }
-        .start-btn {
-            background: var(--accent-green); color: white; padding: 20px 40px; font-size: 1.5rem; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px;
-        }
-
-        /* NORMALE STIJLEN */
-        .app-wrapper { max-width: 800px; margin: 0 auto; padding: 10px; padding-bottom: 50px; }
-        .tab-navigation { display: flex; background: var(--card-bg); padding: 5px; border-radius: 10px; margin-bottom: 15px; }
-        .tab-link { flex: 1; background: transparent; border: none; padding: 15px; color: var(--text-muted); font-size: 1.2rem; font-weight: bold; }
-        .tab-link.active { background-color: #333; color: var(--text-main); border-radius: 8px; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        .card { background: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
-        .weight-value { font-size: 4.5rem; font-weight: 800; display: block; text-align: center; }
-        .weight-unit { font-size: 1.5rem; color: var(--text-muted); text-align: center; display: block; }
-        
-        .action-btn { width: 100%; padding: 20px; font-size: 1.3rem; font-weight: bold; border: none; border-radius: 10px; margin-top: 10px; color: white; }
-        .btn-green { background: var(--accent-green); }
-        .btn-grey { background: #444; }
-        .actions-row { display: flex; gap: 10px; }
-
-        .video-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid #333;}
-        img#live-image { width: 100%; height: 100%; object-fit: contain; }
-    </style>
+    <title>Tractor Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-    <div id="start-overlay">
-        <h1>AgLoadMonitor</h1>
-        <p>Klik op start om scherm<br>aan te houden</p>
-        <button class="start-btn" onclick="startApp()">🚀 START APP</button>
-    </div>
-
     <div class="app-wrapper">
         <nav class="tab-navigation">
-            <button class="tab-link active" onclick="switchTab('dashboard-tab', this)">📊 Dashboard</button>
-            <button class="tab-link" onclick="switchTab('stream-tab', this)">📹 Camera</button>
+            <button class="tab-link active" onclick="switchTab('dashboard-tab', this)">
+                <span>📊</span> Monitor
+            </button>
+            <button class="tab-link" onclick="switchTab('stream-tab', this)">
+                <span>📹</span> Camera
+            </button>
         </nav>
 
         <div id="dashboard-tab" class="tab-content active">
-            <div class="card">
-                <div style="text-align: center; color: #aaa;">HUIDIG GEWICHT</div>
-                <span class="weight-value">{{ gewicht }}</span>
-                <span class="weight-unit">KG</span>
-            </div>
-
-            <div class="card">
-                <div>Stap 2: <strong>Mais Laden</strong></div>
-                <div style="background:#333; height:20px; border-radius:10px; margin:10px 0; overflow:hidden;">
-                    <div style="width:72%; height:100%; background:var(--accent-orange);"></div>
+            <div class="grid-container">
+                
+                <div class="card weight-card">
+                    <div class="card-header">Totaal Gewicht <span>⚖️</span></div>
+                    <div class="weight-display">
+                        <span class="weight-value">{{ gewicht }}</span>
+                        <span class="weight-unit">KG</span>
+                    </div>
+                    <div class="weight-sub">Laatste vracht: 4500 kg</div>
                 </div>
-                <div style="display:flex; justify-content:space-between;">
-                    <span>725 KG</span>
-                    <span>Doel: {{ doel }} KG</span>
-                </div>
-            </div>
 
-            <div class="actions-row">
-                <button class="action-btn btn-grey" style="flex:1">-</button>
-                <button class="action-btn btn-green" style="flex:2">Volgende Stap</button>
-                <button class="action-btn btn-grey" style="flex:1">+</button>
+                <div class="card plan-card">
+                    <div class="card-header">
+                        Huidige Taak <span class="step-badge">Stap 2/5</span>
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-info">
+                            <strong>{{ stap }}</strong>
+                            <span>725 / {{ doel }} KG</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: 72.5%;"></div>
+                        </div>
+                    </div>
+                    <div class="next-step-preview">
+                        <small>VOLGENDE:</small> Meel (Soja/Raap) - 500 KG
+                    </div>
+                </div>
+
+                <div class="actions-container">
+                    <button class="action-btn secondary">-</button>
+                    <button class="action-btn primary">Volgende Stap</button>
+                    <button class="action-btn secondary">+</button>
+                </div>
             </div>
         </div>
 
         <div id="stream-tab" class="tab-content">
-            <div class="video-wrapper">
-                <img id="live-image" src="" data-src="{{ url_for('main.video_feed') }}" alt="Geen Verbinding">
+            <div class="card">
+                <div class="card-header">Live Feed</div>
+                <div class="video-wrapper">
+                    <img id="live-image" src="" data-src="{{ url_for('main.video_feed') }}" alt="Geen signaal">
+                </div>
+                <div class="stream-controls">
+                    <div class="status-text">● Live</div>
+                    <button class="action-btn primary full-width" onclick="forceReloadStream()">🔄 Herstart</button>
+                </div>
             </div>
-            <button class="action-btn btn-green" onclick="forceReloadStream()">🔄 Herstart Stream</button>
         </div>
     </div>
 
-    <video id="no-sleep-video" playsinline muted loop style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;">
-        <source type="video/mp4" src="data:video/mp4;base64,AAAAHGZ0eXBNNEVAAAAAAAEAAQAAAAAAAAAAAAAAAQAAGPdwZG9Hb21rAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIG1vb3YAAABsbXZoAAAAAMNs6kXDbOpFAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAChXRyYWQAAAAUaGVuZDI3Lnh4eC5xcmEubmcAAAAAAAAAAAAAAAABAAAAcWlkYXQAAAAEAAAhLnRyYXQAAAA5dGtoZAAAAAHNguYFzYLmBQAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAIbWRpYQAAACBtZGhkAAAAAMNs6kXDbOpFAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAABhaGRscgAAAAAAAAAAdmlkZQAAAAAAAAAAAAAAAAB2aWRlb2hhbmRsZXIAAAABZ21pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAADBkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAAE4c3RibAAAAFBzdHNkAAAAAAAAAAEAAABcbXA0dgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAA1AAAANUBjb3JyAAAAMGF2Y0MxMDAwMAIAAAACAwEBAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFzdHRzAAAAAAAAAAEAAAABAAAAAQAAABxzdHNjAAAAAAAAAAEAAAABAAAAAQAAAAEAAAA0c3RzegAAAAAAAAAAAAAAAQAAACFzdGNvAAAAAAAAAAEAAAAYAAAAYXVkdGEAAAAUY3BydAAAAAxhcHBsZSBtYXI=">
-    </video>
-
     <script>
-        // --- FUNCTIE 1: APP STARTEN & SCHERM AAN HOUDEN ---
-        function startApp() {
-            // 1. Verberg de overlay
-            document.getElementById('start-overlay').style.display = 'none';
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-content, .tab-link').forEach(e => e.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
 
-            // 2. Start de verborgen video (De "Hack")
-            var video = document.getElementById('no-sleep-video');
-            video.play().then(function() {
-                console.log("Verborgen video speelt, scherm blijft aan!");
-            }).catch(function(error) {
-                console.log("Kon video niet starten:", error);
-                alert("Let op: Scherm kan uitgaan. Pas je instellingen aan.");
-            });
+            const img = document.getElementById('live-image');
+            // Alleen stream laden als tab open is (bespaart data)
+            id === 'stream-tab' ? (img.src || (img.src = img.dataset.src)) : img.src = "";
         }
 
-        // --- FUNCTIE 2: TABBLADEN WISSELEN & STREAM BEHEREN ---
-        function switchTab(tabId, btnElement) {
-            // UI Update
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            btnElement.classList.add('active');
-
-            // Camera Logica
-            var img = document.getElementById('live-image');
-            if (tabId === 'stream-tab') {
-                // Zet de stream aan
-                img.src = img.getAttribute('data-src');
-            } else {
-                // Zet de stream uit (bespaar data)
-                img.src = "";
-            }
-        }
-
-        // --- FUNCTIE 3: HANDMATIG HERSTARTEN ---
         function forceReloadStream() {
-            var img = document.getElementById('live-image');
-            var src = img.getAttribute('data-src');
-            img.src = ""; // Even leegmaken
-            setTimeout(() => { img.src = src; }, 100); // En weer vullen
+            const img = document.getElementById('live-image');
+            const src = img.dataset.src;
+            img.src = "";
+            setTimeout(() => img.src = src, 100);
         }
     </script>
 </body>
