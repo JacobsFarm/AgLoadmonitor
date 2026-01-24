@@ -84,13 +84,34 @@ Accessing the Interface
 
 🗺 Roadmap & Challenges
 
-    [x] Basic Weight Reading: Reading digits via YOLO.
+    [x] Basic camera functionality in the browser
 
-    [x] Feed Plan Logic: Progress bars and component switching.
+    [ ] Basic Weight Reading: Reading digits via YOLO (https://github.com/ultralytics/ultralytics).
+
+    [ ] Feed Plan Logic: Progress bars and component switching.
 
     [ ] Feed Type Recognition: Using a camera inside the tub to visually identify if you are loading Grass vs. Maize and auto-deducting from the plan.
 
-    [ ] Hardware Power Management: Safe shutdown scripts for when the tractor ignition is cut.
+    [ ] Production-Ready Web App: Optimize for performance, security, fault tolerance, and simplify the installation/upgrade process.
+
+## Dataset Classes
+
+The dataset contains **12 classes**. Below is the index mapping as defined in the `dataset.yaml` configuration file:
+
+| Index (ID) | Label Name   | Description          |
+| :---:      | :---         | :---                 |
+| **0** | `0`          | Digit 0              |
+| **1** | `1`          | Digit 1              |
+| **2** | `2`          | Digit 2              |
+| **3** | `3`          | Digit 3              |
+| **4** | `4`          | Digit 4              |
+| **5** | `5`          | Digit 5              |
+| **6** | `6`          | Digit 6              |
+| **7** | `7`          | Digit 7              |
+| **8** | `8`          | Digit 8              |
+| **9** | `9`          | Digit 9              |
+| **10** | `lcd-screen` | LCD Screen detection |
+| **11** | `monitor`    | Monitor detection    |
 
 🤝 Contributing
 
@@ -105,3 +126,4 @@ We welcome farmers and developers!
     Push to the Branch (git push origin feature/NewFeedLogic)
 
     Open a Pull Request
+
