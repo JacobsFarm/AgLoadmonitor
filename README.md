@@ -85,7 +85,8 @@ Accessing the Interface
     Navigate to http://192.168.x.x:5000 in your browser.
 
 ---
-🗺 Roadmap & Challenges
+
+## 🗺 Roadmap & Challenges
 
     [x] Basic camera functionality in the browser.
 
@@ -97,7 +98,7 @@ Accessing the Interface
 
     [ ] Full-Scale Web App: Improved handling, efficiency, secure connections, fault detection, and ease of installation/upgrades.
 
-🤝 Contributing
+## 🤝 Contributing
 
 We welcome farmers and developers!
 
