@@ -88,15 +88,11 @@ Accessing the Interface
 
 ## 🗺 Roadmap & Challenges
 
-    [x] Basic camera functionality in the browser.
-
-    [ ] Basic Weight Reading: Reading digits via YOLO.
-
-    [ ] Feed Plan Logic: Progress bars and component switching.
-
-    [ ] Feed Type Recognition: Using a camera inside the tub to visually identify feed (Grass vs. Maize) and auto-deduct from the plan.
-
-    [ ] Full-Scale Web App: Improved handling, efficiency, secure connections, fault detection, and ease of installation/upgrades.
+- [x] **Browser Camera Integration:** Basic camera functionality operational in the browser.
+- [ ] **Automated Weight Reading:** Implement digit recognition using [YOLO](https://github.com/ultralytics/ultralytics).
+- [ ] **Feed Plan Logic:** Develop progress tracking, dynamic component switching, and visual feedback.
+- [ ] **Feed Type Classification:** Auto-detect feed type (e.g., Grass vs. Maize) via internal camera to adjust the plan automatically.
+- [ ] **Production Architecture:** Optimize for performance, security, fault tolerance, and simplify the installation/upgrade process.
 
 ## 🤝 Contributing
 
