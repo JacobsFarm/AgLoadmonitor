@@ -83,7 +83,7 @@ Accessing the Interface
     Connect your phone to the Raspberry Pi's WiFi Hotspot.
 
     Navigate to http://192.168.x.x:5000 in your browser.
-
+```
 ---
 
 ## 🗺 Roadmap & Challenges
