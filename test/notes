@@ -1,0 +1,17 @@
+TESTING NOTES
+=============
+
+INPUT SETTINGS
+--------------
+- For RTSP Stream:
+  "VIDEO_SOURCE_TYPE": "rtsp"
+  (Uses source: "RTSP_URL_OCR")
+
+- For Local Files (.mp4, .jpg, .png):
+  "VIDEO_SOURCE_TYPE": "file"
+  (Uses source: "VIDEO_SOURCE_FILE")
+
+BACKEND ENDPOINTS
+-----------------
+- Status Check: http://localhost:5000/api/status
+- OCR Video Feed: http://localhost:5000/api/video_feed_ocr
