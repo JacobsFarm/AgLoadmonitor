@@ -2,7 +2,8 @@ import cv2
 import threading
 import time
 import app.vision.ocr as ocr_logic 
-# NIEUW: Importeer je brein
+import os                   
+from datetime import datetime
 from app.services.weight_logic import stabilizer 
 
 # ... (De global_state en get_video_source functies blijven hetzelfde als in) ...
@@ -20,9 +21,25 @@ def get_video_source(config, type_key):
     return config.get('RTSP_URL_OCR') if type_key == 'OCR' else config.get('RTSP_URL_BAK')
 
 # --- ACHTERGROND PROCES ---
+# ... imports blijven hetzelfde ...
+
 def ocr_background_worker(app_config):
     print("--- Starten van OCR Achtergrond Thread ---")
     
+    # 1. SETUP: Zorg ALTIJD dat de map bestaat bij opstarten
+    # Dit doen we buiten de loop om de harde schijf te sparen
+    snapshot_dir = os.path.join(os.getcwd(), 'data', 'snapshots')
+    if not os.path.exists(snapshot_dir):
+        try:
+            os.makedirs(snapshot_dir)
+            print(f"Map aangemaakt: {snapshot_dir}")
+        except Exception as e:
+            print(f"FOUT: Kan snapshot map niet maken: {e}")
+
+    # Variabele voor timing bijhouden
+    last_snapshot_time = 0
+
+    # Model laden
     if ocr_logic.reader is None:
         ocr_logic.init_model(app_config)
     
@@ -41,19 +58,38 @@ def ocr_background_worker(app_config):
                 continue
 
         if ocr_logic.reader is not None:
-            # 1. HAAL RUWE DATA OP (OGEN)
+            # A. Detectie (Ogen)
             raw_weight, annotated_frame = ocr_logic.reader.detect_numbers(frame)
             
-            # 2. VERWERK MET LOGICA (BREIN)
-            # Hier wordt het getal "schoongemaakt" en gestabiliseerd
+            # B. Logica (Brein)
             clean_weight = stabilizer.process_new_reading(raw_weight)
             
-            # 3. OPSLAAN (GEHEUGEN)
+            # C. Update Globale Status
             with global_state["lock"]:
                 latest_weight_data["gewicht"] = clean_weight
                 global_state["current_frame"] = annotated_frame.copy()
+
+            # D. SNAPSHOTS OPSLAAN (Jouw dynamische stukje)
+            # We checken de config ELKE frame, zodat je live kunt wisselen
+            should_save = app_config.get('SAVE_SNAPSHOTS', False)
+            interval = app_config.get('SNAPSHOT_INTERVAL', 20)
+
+            if should_save:
+                current_time = time.time()
+                if current_time - last_snapshot_time > interval:
+                    # Bestandsnaam: snapshot_2026-01-25_14-30-05.jpg
+                    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                    filename = f"snapshot_{timestamp}.jpg"
+                    filepath = os.path.join(snapshot_dir, filename)
+                    
+                    # We slaan het ORIGINELE frame op (zonder YOLO vakjes)
+                    # Dit is beter voor het hertrainen van je model later
+                    cv2.imwrite(filepath, frame)
+                    print(f"📸 Screenshot opgeslagen: {filename}")
+                    
+                    last_snapshot_time = current_time
         
-        # Korte pauze voor 'realtime' gevoel (50fps check)
+        # Korte pauze (bijv. 50 FPS)
         time.sleep(0.02)
 
 # ... (De rest van het bestand: start_ocr_thread en generate functies blijven gelijk) ...
