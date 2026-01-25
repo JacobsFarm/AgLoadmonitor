@@ -15,6 +15,9 @@
             <button class="tab-link active" onclick="switchTab('dashboard-tab', this)">
                 <span>📊</span> Monitor
             </button>
+            <button class="tab-link" onclick="switchTab('numbers-tab', this)">
+                <span>⚖️</span> Lading
+            </button>
             <button class="tab-link" onclick="switchTab('stream-tab', this)">
                 <span>📹</span> Camera
             </button>
@@ -52,6 +55,15 @@
             </div>
         </div>
 
+        <div id="numbers-tab" class="tab-content">
+            <div class="display-container">
+                <div class="number-card-clean">
+                   <span class="clean-number">{{ gewicht }}</span>
+                   <span class="clean-unit">KG</span>
+                </div>
+            </div>
+        </div>
+
         <div id="stream-tab" class="tab-content">
             <div class="card">
                 <div class="card-header">Live Feed (JSMpeg)</div>
@@ -84,7 +96,6 @@
         function startStream() {
             if (player) return;
             const canvas = document.getElementById('video-canvas');
-            // Verbind met poort 8080 (De Video Server)
             const url = 'ws://' + window.location.hostname + ':8080/';
             console.log("Start JSMpeg op: " + url);
             player = new JSMpeg.Player(url, { canvas: canvas, autoplay: true, audio: false, loop: true });
