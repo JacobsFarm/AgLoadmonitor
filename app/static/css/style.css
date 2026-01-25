@@ -3,7 +3,7 @@
     --card-bg: #1e1e1e;
     --text-main: #ffffff;
     --text-muted: #aaaaaa;
-    --accent-green: #2ecc71;
+    --accent-green: #2ecc71; /* Dit is jouw specifieke groen */
     --accent-orange: #e67e22;
     --border-radius: 16px;
 }
@@ -82,7 +82,7 @@ body {
     justify-content: space-between;
 }
 
-/* --- Specifieke Elementen --- */
+/* --- Elementen Tab 1 --- */
 .weight-value { font-size: 5rem; font-weight: 800; line-height: 1; display: block; text-align: center; }
 .weight-unit { font-size: 1.5rem; color: var(--text-muted); display: block; text-align: center; }
 .weight-sub { text-align: center; color: var(--accent-green); margin-top: 10px; font-size: 0.9rem; }
@@ -104,7 +104,7 @@ body {
 .action-btn.primary { background: var(--accent-green); flex: 2; font-size: 1.4rem; }
 .full-width { width: 100%; }
 
-/* --- Video (Aangepast voor Canvas) --- */
+/* --- Video --- */
 .video-wrapper {
     width: 100%; 
     background: black; 
@@ -117,14 +117,63 @@ body {
     overflow: hidden;
 }
 
-/* Hier zorgen we dat zowel IMG als CANVAS goed schalen */
 .video-wrapper img, 
-.video-wrapper canvas { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: contain; 
-}
+.video-wrapper canvas { width: 100%; height: 100%; object-fit: contain; }
 
 .stream-controls { margin-top: 20px; text-align: center; }
 .status-text { color: var(--accent-green); margin-bottom: 15px; font-size: 0.9rem; animation: pulse 2s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+/* =========================================
+   NIEUW: Tab 2 - Clean Green Display
+   ========================================= */
+
+.display-container {
+    height: calc(100vh - 140px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.number-card-clean {
+    /* Het "nette" vlak om het getal */
+    background: var(--card-bg); /* Gewoon donkergrijs */
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius);
+    
+    /* Hier komt jouw specifieke groen terug als rand */
+    border: 2px solid var(--accent-green);
+    
+    /* Een subtiele groene gloed, niet te overdreven */
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.15);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.clean-number {
+    font-size: 30vw; /* Zeer groot */
+    font-weight: 800;
+    font-family: monospace; /* Digitale look */
+    
+    /* DE KLEUR: Jouw specifieke groen */
+    color: var(--accent-green);
+    
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.4); /* Lichte gloed voor leesbaarheid */
+}
+
+.clean-unit {
+    font-size: 3rem;
+    color: var(--text-muted); /* Grijs, zodat het niet afleidt */
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* Voor PC schermen: iets kleiner lettertype zodat het past */
+@media (min-width: 768px) {
+    .clean-number { font-size: 12rem; }
+}
