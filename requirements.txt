@@ -1,4 +1,5 @@
 flask
 opencv-python-headless
 numpy
-pip install websockets
+websockets
+
