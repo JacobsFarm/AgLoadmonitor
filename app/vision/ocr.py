@@ -7,44 +7,68 @@ class DigitalReadout:
     def __init__(self, model_path):
         print(f"Laden van YOLO model: {model_path}")
         self.model = YOLO(model_path)
-        # LET OP: Alle stabilisatie variabelen zijn hier nu weggehaald!
+
+    def find_screen_box(self, frame, target_labels=['lcd', 'monitor']):
+        """
+        Zoekt naar een specifiek object (bijv. lcd of monitor) om op in te zoomen.
+        Geeft terug: (x1, y1, x2, y2) of None
+        """
+        # Scan het hele plaatje
+        results = self.model.predict(frame, conf=0.4, verbose=False)
+        
+        best_box = None
+        highest_conf = 0.0
+
+        for r in results:
+            for box in r.boxes:
+                cls_id = int(box.cls[0])
+                label = self.model.names[cls_id]
+                conf = box.conf[0].item()
+
+                # Als dit label in onze zoeklijst staat (bijv. 'lcd')
+                if label in target_labels:
+                    # We pakken de box met de hoogste zekerheid
+                    if conf > highest_conf:
+                        highest_conf = conf
+                        # Coördinaten ophalen en omzetten naar integers
+                        coords = box.xyxy[0].tolist() # [x1, y1, x2, y2]
+                        best_box = [int(c) for c in coords]
+
+        return best_box
 
     def detect_numbers(self, frame):
         """
-        Voert puur de detectie uit.
-        Geeft terug: (ruw_getal, plaatje)
+        Voert detectie uit op het (eventueel uitgeknipte) frame.
         """
         results = self.model.predict(frame, conf=0.5, verbose=False)
         
         detections = []
 
-        # 1. Haal resultaten op
         for r in results:
             for box in r.boxes:
                 cls_id = int(box.cls[0])
                 label = self.model.names[cls_id]
                 
-                if label.isdigit():
+                # Alleen cijfers (of de punt/komma als je die getraind hebt)
+                if label.isdigit() or label in ['.', ',']:
                     x1 = box.xyxy[0][0].item() 
                     detections.append((x1, label))
 
-        # 2. Sorteer van Links naar Rechts
+        # Sorteer van Links naar Rechts
         detections.sort(key=lambda x: x[0])
-
-        # 3. Plak cijfers aan elkaar
         number_str = "".join([d[1] for d in detections])
         
-        raw_number = None # Standaard None als we niks zien
+        raw_number = None
         if number_str:
-            try:
-                raw_number = int(number_str)
-            except ValueError:
-                pass
+            # Filter eventuele niet-cijfers eruit als int() faalt
+            clean_str = ''.join(filter(str.isdigit, number_str))
+            if clean_str:
+                raw_number = int(clean_str)
 
-        # We returnen nu direct de RUWE waarde, zonder smoothing
+        # Plot de resultaten op het frame (voor debug)
         return raw_number, results[0].plot()
 
-# Global setup blijft hetzelfde
+# Global setup
 reader = None
 
 def init_model(app_config):
