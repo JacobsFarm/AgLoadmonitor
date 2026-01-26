@@ -14,8 +14,8 @@ No expensive proprietary hardware upgrades needed—just smart software and off-
 Instead of standard OCR (which struggles with digital screens in sunlight), we use a custom-trained **Ultralytics YOLO model**.
 * **Detection:** The model detects individual digits on the screen.
 * **Logic:** `[1] + [2] + [3] + [0]` detected → Parsed as `1230 kg`.
-* **Stream Optimization:** To reduce latency on the local network, the web interface receives updated JPEG snapshots rather than a heavy RTSP video stream.
-
+* **Stream Optimization:** To reduce latency on the local network, the web interface leverages the JavaScript framework JSMpeg.
+  
 <img width="641" height="410" alt="Schermafbeelding 2026-01-26 214556" src="https://github.com/user-attachments/assets/dd896495-5972-489a-8b5f-03c8952141c9" />
 
 ### 2. The Data Flow
