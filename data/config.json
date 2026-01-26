@@ -5,6 +5,5 @@
     "VIDEO_SOURCE_TYPE": "rtsp", 
     "VIDEO_SOURCE_FILE": "test/test_image.jpg",
     "YOLO_MODEL_PATH": "weights/Agloadmonitor.pt",
-    "CONFIDENCE_THRESHOLD": 0.5,
-    "AUTO_NEXT_STEP_DELAY": 5
+    "CONFIDENCE_THRESHOLD": 0.5
 }
