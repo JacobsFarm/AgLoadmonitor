@@ -1,13 +1,31 @@
 import cv2
 import threading
 import time
-import app.vision.ocr as ocr_logic 
-import os                   
+import os
+import numpy as np # Nodig voor de berekening van het midden (mediaan)
 from datetime import datetime
-from app.services.weight_logic import stabilizer 
+import app.vision.ocr as ocr_logic
+from app.services.weight_logic import stabilizer
 
-# --- Parameters ---
-OCR_PROCESS_INTERVAL = 4 
+# ================= CONFIGURATION =================
+
+# --- Performance Settings ---
+FRAME_SKIP_INTERVAL = 4       # Process 1 out of X frames
+BUFFER_SIZE = 1               # Low latency buffer
+
+# --- Auto-Zoom Settings ---
+AUTO_ZOOM_ENABLED = True      
+AUTO_ZOOM_TARGETS = ['monitor']  #['lcd-screen', 'monitor']
+
+# Stability: Collects multiple samples to find the perfect static position
+AUTO_ZOOM_SAMPLES = 20        # Number of frames to analyze before locking
+AUTO_ZOOM_PADDING = 15        # Extra pixels around the box
+
+# --- Snapshot Settings ---
+ENABLE_SNAPSHOTS = False     
+SNAPSHOT_INTERVAL = 20        
+
+# =================================================
 
 global_state = {
     "latest_weight_data": {"gewicht": 0},
@@ -16,22 +34,23 @@ global_state = {
 }
 latest_weight_data = global_state["latest_weight_data"]
 
+zoom_state = {
+    "locked": False,
+    "coords": None,
+    "candidates": [], # List to store the 20 samples
+    "attempts": 0
+}
+
 def get_video_source(config, type_key):
     if config.get('VIDEO_SOURCE_TYPE') == 'file':
         return config.get('VIDEO_SOURCE_FILE')
     return config.get('RTSP_URL_OCR') if type_key == 'OCR' else config.get('RTSP_URL_BAK')
 
-# --- ACHTERGROND PROCES ---
 def ocr_background_worker(app_config):
-    print(f"--- Starten van OCR Achtergrond Thread (Interval: elke {OCR_PROCESS_INTERVAL}e frame) ---")
+    print(f"--- OCR Service Started | Interval: {FRAME_SKIP_INTERVAL} | Sampling: {AUTO_ZOOM_SAMPLES} frames ---")
     
     snapshot_dir = os.path.join(os.getcwd(), 'data', 'snapshots')
-    if not os.path.exists(snapshot_dir):
-        try:
-            os.makedirs(snapshot_dir)
-        except Exception as e:
-            print(f"FOUT: Kan snapshot map niet maken: {e}")
-
+    os.makedirs(snapshot_dir, exist_ok=True)
     last_snapshot_time = 0
 
     if ocr_logic.reader is None:
@@ -39,66 +58,95 @@ def ocr_background_worker(app_config):
     
     src = get_video_source(app_config, 'OCR')
     cap = cv2.VideoCapture(src)
-    
-    # Forceer een kleine buffer als de backend het ondersteunt (helpt tegen latency)
-    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, BUFFER_SIZE)
 
     frame_count = 0
 
     while True:
-        # 1. Lees ALTIJD het frame om de buffer leeg te maken
-        success, frame = cap.read()
+        success, full_frame = cap.read()
         
         if not success:
-            if app_config.get('VIDEO_SOURCE_TYPE') == 'file':
-                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                continue
-            else:
-                print("Geen beeld, opnieuw verbinden...")
+            if app_config.get('VIDEO_SOURCE_TYPE') != 'file':
                 time.sleep(2)
                 cap.open(src)
-                continue
-
-        frame_count += 1
-
-        # 2. Check: Is het tijd om de AI te draaien?
-        # Als de restwaarde van de deling NIET 0 is, slaan we over.
-        if frame_count % OCR_PROCESS_INTERVAL != 0:
-            # We doen hier niets, zodat de loop direct weer naar cap.read() gaat.
-            # Dit is essentieel om de "oude" beelden uit de buffer te spoelen.
+            else:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             continue
 
-        # 3. ZWARE OPERATIES (Alleen als we door de check komen)
+        frame_count += 1
+        
+        # Scan faster during search phase, slower when locked
+        current_interval = 2 if (AUTO_ZOOM_ENABLED and not zoom_state["locked"]) else FRAME_SKIP_INTERVAL
+        
+        if frame_count % current_interval != 0:
+            continue
+
         if ocr_logic.reader is not None:
-            # A. Detectie (Ogen)
-            raw_weight, annotated_frame = ocr_logic.reader.detect_numbers(frame)
+            processing_frame = full_frame
             
-            # B. Logica (Brein)
+            # --- Auto-Zoom Logic ---
+            if AUTO_ZOOM_ENABLED:
+                
+                # Phase 1: Collecting Samples (The Stabilization Phase)
+                if not zoom_state["locked"]:
+                    try:
+                        # 1. Find the screen box
+                        box = ocr_logic.reader.find_screen_box(full_frame, AUTO_ZOOM_TARGETS)
+                        
+                        if box:
+                            # 2. Add to candidates list
+                            zoom_state["candidates"].append(box)
+                            print(f"Sampling position... {len(zoom_state['candidates'])}/{AUTO_ZOOM_SAMPLES}")
+                            
+                            # 3. Check if we have enough samples
+                            if len(zoom_state["candidates"]) >= AUTO_ZOOM_SAMPLES:
+                                print("Calculating optimal stable crop...")
+                                
+                                # 4. Calculate the MEDIAN (This removes jitter/shaking)
+                                median_box = np.median(zoom_state["candidates"], axis=0).astype(int)
+                                
+                                h, w, _ = full_frame.shape
+                                
+                                # 5. Apply Padding (No manual offsets anymore)
+                                x1 = max(0, median_box[0] - AUTO_ZOOM_PADDING)
+                                y1 = max(0, median_box[1] - AUTO_ZOOM_PADDING)
+                                x2 = min(w, median_box[2] + AUTO_ZOOM_PADDING)
+                                y2 = min(h, median_box[3] + AUTO_ZOOM_PADDING)
+                                
+                                # 6. Final Validation
+                                if (x2 - x1) > 50 and (y2 - y1) > 50:
+                                    zoom_state["coords"] = (x1, y1, x2, y2)
+                                    zoom_state["locked"] = True
+                                    print(f"✅ STABLE LOCK ACQUIRED at: {zoom_state['coords']}")
+                                else:
+                                    # Reset if invalid
+                                    zoom_state["candidates"] = []
+                                    
+                    except AttributeError:
+                        print("⚠️ Error: Function 'find_screen_box' missing in ocr.py")
+
+                # Phase 2: Apply Crop
+                elif zoom_state["locked"] and zoom_state["coords"]:
+                    x1, y1, x2, y2 = zoom_state["coords"]
+                    processing_frame = full_frame[y1:y2, x1:x2]
+
+            # --- Detection ---
+            raw_weight, annotated_img = ocr_logic.reader.detect_numbers(processing_frame)
             clean_weight = stabilizer.process_new_reading(raw_weight)
             
-            # C. Update Globale Status
+            # --- Update State ---
             with global_state["lock"]:
                 latest_weight_data["gewicht"] = clean_weight
-                # We updaten het plaatje alleen als we een nieuwe detectie hebben gedaan
-                global_state["current_frame"] = annotated_frame.copy()
+                global_state["current_frame"] = annotated_img.copy()
 
-            # D. SNAPSHOTS OPSLAAN
-            should_save = app_config.get('SAVE_SNAPSHOTS', False)
-            interval = app_config.get('SNAPSHOT_INTERVAL', 20)
-
-            if should_save:
+            # --- Snapshots ---
+            if ENABLE_SNAPSHOTS:
                 current_time = time.time()
-                if current_time - last_snapshot_time > interval:
+                if current_time - last_snapshot_time > SNAPSHOT_INTERVAL:
                     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
                     filename = f"snapshot_{timestamp}.jpg"
-                    filepath = os.path.join(snapshot_dir, filename)
-                    cv2.imwrite(filepath, frame)
-                    print(f"📸 Screenshot opgeslagen: {filename}")
+                    cv2.imwrite(os.path.join(snapshot_dir, filename), full_frame)
                     last_snapshot_time = current_time
-        
-        # OPMERKING: De time.sleep(0.02) is hier WEGGEHAALD.
-        # cap.read() blokkeert namelijk vanzelf totdat de camera een nieuw frame heeft.
-        # Extra slapen zorgt alleen maar voor meer vertraging (lag).
 
 def start_ocr_thread(app_config):
     t = threading.Thread(target=ocr_background_worker, args=(app_config,))
@@ -111,17 +159,18 @@ def generate_ocr_frames(app_config):
         with global_state["lock"]:
             if global_state["current_frame"] is not None:
                 frame = global_state["current_frame"]
+        
         if frame is not None:
             try:
                 ret, buffer = cv2.imencode('.jpg', frame)
                 if ret: yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
             except: pass
-        # Voor de kijker thuis is 10 FPS (0.1s) prima voor de update van het plaatje
         time.sleep(0.1)
 
 def generate_bak_frames(app_config):
     src = get_video_source(app_config, 'BAK')
     cap = cv2.VideoCapture(src)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, BUFFER_SIZE)
     while True:
         success, frame = cap.read()
         if not success:
