@@ -66,6 +66,7 @@ Instead of standard OCR (which struggles with digital screens in sunlight), we u
 * Ultralytics (`pip install ultralytics`)
 * Flask or Django (for the web server)
 * OpenCV (`cv2`)
+* winget install "Gyan.FFmpeg"
 
 ### Running the Server
 ```bash
